@@ -1,0 +1,28 @@
+# Streamlit secrets
+.streamlit/secrets.toml
+secrets.toml
+
+# Virtual environment
+.venv/
+venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Streamlit secrets
+.streamlit/secrets.toml
+
+# Environment variables
+.env
+
+# VS Code
+.vscode/
+
+# macOS
+.DS_Store
+# 1. Import the library
+from inference_sdk import InferenceHTTPClient
+
+
