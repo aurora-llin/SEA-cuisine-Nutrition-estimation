@@ -1,15 +1,20 @@
+from pathlib import Path
+
 import torch
 import torch.nn as nn
 from torchvision.models import efficientnet_b0
 from torchvision import transforms
 from PIL import Image
 
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+DEFAULT_WEIGHTS_PATH = PROJECT_ROOT / "model" / "efficientnet-b0.pth"
+
 CLASS_NAMES = [
     "adobo", "amok_trey", "banh_mi", "hainanese_chicken_rice", "laksa",
     "laphet_thoke", "nasi_goreng", "pad_thai", "pho", "satay",
 ]
 
-def load_model(weights_path="model/efficientnet-b0.pth"):
+def load_model(weights_path=DEFAULT_WEIGHTS_PATH):
     model = efficientnet_b0(weights=None)
     model.classifier[1] = nn.Linear(model.classifier[1].in_features, len(CLASS_NAMES))
     state_dict = torch.load(weights_path, map_location="cpu")
