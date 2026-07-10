@@ -8,4 +8,4 @@ Then they put the real API key inside secrets.toml
 
 API_key in telegram.
 
-run python -r requirements.txt to install necessary packages
+run pip install -r requirements.txt to install necessary packages
