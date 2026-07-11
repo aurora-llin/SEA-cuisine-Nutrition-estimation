@@ -3,11 +3,9 @@ os.environ["ARROW_DEFAULT_MEMORY_POOL"] = "system"
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
 import tempfile
-from pathlib import Path
 import streamlit as st
 from PIL import Image
 from inference_sdk import InferenceHTTPClient
-import tomllib
 import database as db
 from model_utils import load_model, predict_dish
 
@@ -19,7 +17,7 @@ def get_model():
 
 client = InferenceHTTPClient(
     api_url="https://serverless.roboflow.com",
-    api_key=api_key,
+    api_key=st.secrets["ROBOFLOW_API_KEY"]
 )
 
 uploaded_file = st.file_uploader("Upload food image", type=["jpg", "jpeg", "png"])
@@ -121,7 +119,3 @@ if uploaded_file:
         st.write("Per-ingredient breakdown")
         st.dataframe(breakdown)
         st.caption(f"Includes untracked oil/salt/sauce residual: {residual['calories_kcal']:.0f} kcal")
-    result = client.infer(image_path, model_id=model_id)
-
-    st.subheader("Raw Roboflow Result")
-    st.json(result)
