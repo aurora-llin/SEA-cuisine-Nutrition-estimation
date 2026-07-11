@@ -1,3 +1,7 @@
+import os
+os.environ["ARROW_DEFAULT_MEMORY_POOL"] = "system"
+os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+
 import tempfile
 import streamlit as st
 from PIL import Image
@@ -27,7 +31,7 @@ if uploaded_file:
         image_path = temp.name
 
     # --- STEP 1: EfficientNet dish classification ---
-    st.subheader("Step 1 · Dish Classification")
+    st.subheader(" Dish Classification")
     model = get_model()
     predictions = predict_dish(model, image, top_k=3)
     top_dish, top_conf = predictions[0]
@@ -42,7 +46,7 @@ if uploaded_file:
     )
 
     # --- STEP 2: YOLO ingredient detection (same photo) ---
-    st.subheader("Step 2 · Ingredient Detection (YOLO)")
+    st.subheader("Ingredient Detection (YOLO)")
     result = client.infer(image_path, model_id=st.secrets["ROBOFLOW_MODEL_ID"])
     detected = [(p["class"], p["confidence"]) for p in result.get("predictions", [])]
     detected_ids = {d[0] for d in detected}
@@ -65,7 +69,7 @@ if uploaded_file:
         st.session_state["last_dish"] = dish_id
 
     # --- STEP 4: User edits ingredient list ---
-    st.subheader("Step 4 · Confirm Ingredients")
+    st.subheader("Confirm Ingredients")
     to_remove = None
     for i, item in enumerate(st.session_state["ingredients"]):
         c1, c2, c3, c4 = st.columns([3, 2, 2, 1])
@@ -105,7 +109,7 @@ if uploaded_file:
             for k in totals:
                 totals[k] += contrib[k]
 
-        st.subheader("Step 5 · Nutrition Estimate")
+        st.subheader("Nutrition Estimate")
         c1, c2, c3, c4 = st.columns(4)
         c1.metric("Calories", f"{totals['calories_kcal']:.0f} kcal")
         c2.metric("Protein", f"{totals['protein_g']:.1f} g")

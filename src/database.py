@@ -22,19 +22,19 @@ def get_csv_url(gid):
 # Read the Dish nutrition tab into a pandas DataFrame.
 def read_dish_nutrition():
     url = get_csv_url(DISH_NUTRITION_GID)
-    return pd.read_csv(url)
+    return pd.read_csv(url, engine='c')  # Use 'c' engine to avoid warning about mixed types
 
 
 # Read the Dish ingredient manifest tab into a pandas DataFrame.
 def read_dish_ingredient_manifest():
     url = get_csv_url(DISH_INGREDIENT_MANIFEST_GID)
-    return pd.read_csv(url)
+    return pd.read_csv(url, engine='c')  # Use 'c' engine to avoid warning about mixed types
 
 
 # Read the Ingredients nutrition tab into a pandas DataFrame.
 def read_ingredients_nutrition():
     url = get_csv_url(INGREDIENTS_NUTRITION_GID)
-    return pd.read_csv(url)
+    return pd.read_csv(url, engine='c')  # Use 'c' engine to avoid warning about mixed types
 
 
 # Print one DataFrame in a simple CSV format.
