@@ -1,3 +1,4 @@
+import hashlib
 import os
 os.environ["ARROW_DEFAULT_MEMORY_POOL"] = "system"
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
@@ -150,6 +151,7 @@ roboflow_client = (
 uploaded_file = st.file_uploader("Upload food image", type=["jpg", "jpeg", "png"])
 
 if uploaded_file:
+    image_digest = hashlib.sha256(uploaded_file.getvalue()).hexdigest()
     image = Image.open(uploaded_file).convert("RGB")
 
     with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as temp:
@@ -204,8 +206,6 @@ if uploaded_file:
             (prediction["class"], prediction["confidence"])
             for prediction in result.get("predictions", [])
         ]
-        detected_ids = {label for label, _ in detected}
-
         if detected:
             for label, conf in detected:
                 render_confidence_bar(label, conf)
@@ -216,17 +216,49 @@ if uploaded_file:
     with st.spinner("Preparing ingredient list...", show_time=True):
         manifest = db.get_dish_manifest(dish_id)
         all_ingredients = db.read_ingredients_nutrition()["ingredient_id"].tolist()
-        if "ingredients" not in st.session_state or st.session_state.get("last_dish") != dish_id:
+
+        def normalize_ingredient_id(value):
+            return str(value).strip().lower().replace("-", "_").replace(" ", "_")
+
+        canonical_ingredients = {
+            normalize_ingredient_id(ingredient_id): ingredient_id
+            for ingredient_id in all_ingredients
+        }
+        detected_ids = {
+            canonical_ingredients.get(normalize_ingredient_id(label), normalize_ingredient_id(label))
+            for label, _ in detected
+        }
+        ingredient_context = (dish_id, image_digest)
+
+        if (
+            "ingredients" not in st.session_state
+            or st.session_state.get("ingredient_context") != ingredient_context
+        ):
             rows = []
+            added_ids = set()
             for _, row in manifest.iterrows():
-                source = "Recipe + YOLO" if row["ingredient_id"] in detected_ids else "Recipe only"
+                manifest_id = row["ingredient_id"]
+                ingredient_id = canonical_ingredients.get(
+                    normalize_ingredient_id(manifest_id),
+                    manifest_id,
+                )
+                source = "Recipe + YOLO" if ingredient_id in detected_ids else "Recipe only"
                 rows.append({
-                    "ingredient_id": row["ingredient_id"],
+                    "ingredient_id": ingredient_id,
                     "grams": row["typical_quantity_g"],
                     "source": source
                 })
+                added_ids.add(ingredient_id)
+
+            for ingredient_id in sorted(detected_ids - added_ids):
+                rows.append({
+                    "ingredient_id": ingredient_id,
+                    "grams": 50.0,
+                    "source": "YOLO only",
+                })
+
             st.session_state["ingredients"] = rows
-            st.session_state["last_dish"] = dish_id
+            st.session_state["ingredient_context"] = ingredient_context
 
     # --- STEP 3: User edits ingredient list ---
     st.divider()
@@ -243,12 +275,16 @@ if uploaded_file:
             value=float(item["grams"]),
             step=1.0,
             format="%.1f",
-            key=f"grams_{i}",
+            key=f"grams_{dish_id}_{image_digest[:12]}_{i}",
         )
         c3.caption("Source")
         c3.write(item["source"])
         c4.caption("Action")
-        if c4.button("Remove", key=f"remove_{i}", use_container_width=True):
+        if c4.button(
+            "Remove",
+            key=f"remove_{dish_id}_{image_digest[:12]}_{i}",
+            use_container_width=True,
+        ):
             to_remove = i
     if to_remove is not None:
         st.session_state["ingredients"].pop(to_remove)
