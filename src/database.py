@@ -1,7 +1,5 @@
 
 # database.py
-
-# Simple Google Sheets database reader for your VS Code project.
 # Install pandas:
 #    pip install pandas
 
