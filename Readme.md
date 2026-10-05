@@ -13,7 +13,7 @@ Supported dishes include adobo, amok trey, banh mi, Hainanese chicken rice, laks
 
 ## Requirements
 
-- Python 3.10-3.12
+- Python 3.12
 - Internet access for nutrition data and Roboflow detection
 - The included model file at `model/efficientnet-b0.pth`
 - A Roboflow API key and model ID for ingredient detection (optional)
